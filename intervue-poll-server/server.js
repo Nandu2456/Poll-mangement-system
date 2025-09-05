@@ -2,11 +2,16 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const cors = require("cors");
 
 const app = express();
+
+// Allow CORS from any origin (you can restrict to your frontend URL)
+app.use(cors());
+
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: { origin: "*" }, // allow all origins
 });
 
 let currentPoll = null;
@@ -17,7 +22,7 @@ let studentSockets = {}; // { name -> socket.id }
 io.on("connection", (socket) => {
   console.log("🟢 Connected:", socket.id);
 
-  // send initial state
+  // Send initial state
   if (currentPoll) {
     socket.emit("pollCreated", currentPoll);
     socket.emit("answerUpdate", responses);
@@ -59,7 +64,7 @@ io.on("connection", (socket) => {
     studentSockets[name] = socket.id;
     console.log(`👤 Registered: ${name} (${socket.id})`);
 
-    // update poll with new student if poll active
+    // Update poll with new student if poll active
     if (currentPoll) {
       currentPoll.students = Object.keys(studentSockets);
       io.emit("pollCreated", currentPoll);
@@ -70,11 +75,13 @@ io.on("connection", (socket) => {
   socket.on("removeStudent", (studentName) => {
     console.log(`🚫 Teacher removed: ${studentName}`);
     delete responses[studentName];
-    io.emit("answerUpdate", responses);
 
     const studentSocketId = studentSockets[studentName];
     if (studentSocketId) {
-      io.to(studentSocketId).emit("studentRemoved", "You were removed by the teacher");
+      io.to(studentSocketId).emit(
+        "studentRemoved",
+        "You were removed by the teacher"
+      );
       delete studentSockets[studentName];
     }
 
@@ -82,6 +89,8 @@ io.on("connection", (socket) => {
       currentPoll.students = Object.keys(studentSockets);
       io.emit("pollCreated", currentPoll);
     }
+
+    io.emit("answerUpdate", responses);
   });
 
   // Disconnect
@@ -94,4 +103,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(4000, () => console.log("✅ Server running at http://localhost:4000"));
+// Use Render dynamic port
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => console.log(`✅ Server running at port ${PORT}`));
