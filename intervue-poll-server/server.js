@@ -6,12 +6,23 @@ const cors = require("cors");
 
 const app = express();
 
-// Allow CORS from any origin (you can restrict to your frontend URL)
-app.use(cors());
+// Replace this with your deployed frontend URL
+const FRONTEND_URL = "https://poll-frontend-70fs.onrender.com";
+
+// Allow CORS from your frontend only
+app.use(cors({
+  origin: FRONTEND_URL,
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" }, // allow all origins
+  cors: {
+    origin: FRONTEND_URL, // allow only your frontend
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
 let currentPoll = null;
