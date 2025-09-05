@@ -6,10 +6,10 @@ const cors = require("cors");
 
 const app = express();
 
-// Replace this with your deployed frontend URL
+// Replace with your deployed frontend URL
 const FRONTEND_URL = "https://poll-frontend-70fs.onrender.com";
 
-// Allow CORS from your frontend only
+// Enable CORS for your frontend only
 app.use(cors({
   origin: FRONTEND_URL,
   methods: ["GET", "POST"],
@@ -19,7 +19,7 @@ app.use(cors({
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL, // allow only your frontend
+    origin: FRONTEND_URL,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -44,9 +44,9 @@ io.on("connection", (socket) => {
   socket.on("createPoll", (pollData) => {
     currentPoll = {
       ...pollData,
-      students: Object.keys(studentSockets), // attach student list
+      students: Object.keys(studentSockets),
     };
-    responses = {}; // reset
+    responses = {};
     io.emit("pollCreated", currentPoll);
     io.emit("answerUpdate", responses);
   });
@@ -75,7 +75,6 @@ io.on("connection", (socket) => {
     studentSockets[name] = socket.id;
     console.log(`👤 Registered: ${name} (${socket.id})`);
 
-    // Update poll with new student if poll active
     if (currentPoll) {
       currentPoll.students = Object.keys(studentSockets);
       io.emit("pollCreated", currentPoll);
@@ -114,6 +113,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Use Render dynamic port
+// Dynamic port for Render deployment
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => console.log(`✅ Server running at port ${PORT}`));

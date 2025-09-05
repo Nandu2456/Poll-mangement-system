@@ -2,8 +2,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-// adjust backend URL if different
-const socket = io("https://poll-backend-w3r5.onrender.com");
+const SOCKET_URL = "https://poll-backend-service.onrender.com";
+
+const socket = io(SOCKET_URL, {
+  transports: ["websocket", "polling"], // prefer websocket, fallback to polling
+  withCredentials: true, // required for CORS with credentials
+});
 
 
 function App() {
